@@ -55,6 +55,8 @@ export function WishlistPanel() {
   const prices = useStore((s) => s.prices)
   const obtained = useStore((s) => s.obtained)
   const filters = useStore((s) => s.filters)
+  const viewMode = useStore((s) => s.wishlistViewMode)
+  const setViewMode = useStore((s) => s.setWishlistViewMode)
   const applyFilters = useStore((s) => s.applyFiltersToWishlist)
   const hideObtained = useStore((s) => s.hideObtained)
   const toggleApplyFilters = useStore((s) => s.toggleApplyFiltersToWishlist)
@@ -133,6 +135,33 @@ export function WishlistPanel() {
       </div>
 
       <div className="flex flex-col gap-2 border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between gap-2 text-sm">
+          <span>View</span>
+          <div className="flex overflow-hidden rounded-md border border-input">
+            <button
+              type="button"
+              onClick={() => setViewMode('tile')}
+              className={`px-3 py-1 text-sm ${
+                viewMode === 'tile'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card hover:bg-secondary'
+              }`}
+            >
+              Tiles
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`px-3 py-1 text-sm ${
+                viewMode === 'list'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-card hover:bg-secondary'
+              }`}
+            >
+              List
+            </button>
+          </div>
+        </div>
         <Toggle
           label="Apply filters to wishlist"
           checked={applyFilters}
@@ -193,7 +222,12 @@ export function WishlistPanel() {
             <SortableContext items={visible.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <div className="flex flex-col gap-2">
                 {visible.map((car) => (
-                  <WishlistRow key={car.id} car={car} index={wishlist.indexOf(car.id)} />
+                  <WishlistRow
+                    key={car.id}
+                    car={car}
+                    index={wishlist.indexOf(car.id)}
+                    viewMode={viewMode}
+                  />
                 ))}
               </div>
             </SortableContext>

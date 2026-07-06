@@ -68,21 +68,21 @@ export function CarBrowser() {
         <div className="flex overflow-hidden rounded-md border border-input">
           <button
             type="button"
-            onClick={() => setViewMode('list')}
-            className={`px-3 py-1.5 text-sm ${
-              viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-secondary'
-            }`}
-          >
-            List
-          </button>
-          <button
-            type="button"
             onClick={() => setViewMode('tile')}
             className={`px-3 py-1.5 text-sm ${
               viewMode === 'tile' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-secondary'
             }`}
           >
             Tiles
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            className={`px-3 py-1.5 text-sm ${
+              viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-secondary'
+            }`}
+          >
+            List
           </button>
         </div>
       </div>

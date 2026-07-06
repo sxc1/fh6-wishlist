@@ -45,6 +45,8 @@ interface WishlistState {
   toggleObtained: (id: string) => void
 
   // Wishlist view controls
+  wishlistViewMode: ViewMode
+  setWishlistViewMode: (mode: ViewMode) => void
   applyFiltersToWishlist: boolean
   toggleApplyFiltersToWishlist: () => void
   hideObtained: boolean
@@ -85,7 +87,7 @@ export const useStore = create<WishlistState>()(
       sortField: 'make',
       sortDir: 'asc',
       setSort: (sortField, sortDir) => set({ sortField, sortDir }),
-      viewMode: 'list',
+      viewMode: 'tile',
       setViewMode: (viewMode) => set({ viewMode }),
 
       wishlist: [],
@@ -101,6 +103,9 @@ export const useStore = create<WishlistState>()(
       obtained: [],
       toggleObtained: (id) =>
         set((s) => ({ obtained: toggleValue(s.obtained, id) })),
+
+      wishlistViewMode: 'tile',
+      setWishlistViewMode: (wishlistViewMode) => set({ wishlistViewMode }),
 
       applyFiltersToWishlist: false,
       toggleApplyFiltersToWishlist: () =>
@@ -124,7 +129,11 @@ export const useStore = create<WishlistState>()(
     }),
     {
       name: 'fh6-wishlist',
-      version: 1,
+      version: 2,
+      // v1 -> v2 added `wishlistViewMode`. The default shallow merge fills the
+      // new field from initial state, so persisted state passes through as-is
+      // (existing users keep their wishlist, prices, and browser viewMode).
+      migrate: (persisted) => persisted as WishlistState,
     },
   ),
 )
