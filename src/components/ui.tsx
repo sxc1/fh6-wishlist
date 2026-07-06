@@ -2,13 +2,13 @@ import { useEffect, useState } from 'react'
 
 const CLASS_STYLES: Record<string, string> = {
   D: 'bg-neutral-500 text-white',
-  C: 'bg-data-3 text-white',
-  B: 'bg-data-2 text-white',
-  A: 'bg-primary text-primary-foreground',
-  S1: 'bg-data-1 text-white',
-  S2: 'bg-data-4 text-white',
-  R: 'bg-destructive text-destructive-foreground',
-  X: 'bg-foreground text-background',
+  C: 'bg-[#007d79] text-white',
+  B: 'bg-[#4ab2ff] text-white',
+  A: 'bg-[#3d84f8] text-white',
+  S1: 'bg-[#8a3ffc] text-white',
+  S2: 'bg-[#fc7aa4] text-white',
+  R: 'bg-[#ed4142] text-white',
+  X: 'bg-primary-alt text-primary-foreground',
 }
 
 export function ClassBadge({ carClass, rating }: { carClass: string; rating?: number }) {
