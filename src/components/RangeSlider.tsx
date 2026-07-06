@@ -163,7 +163,7 @@ export function RangeSlider({
   return (
     <div>
       <Slider.Root
-        className="relative flex h-5 w-full touch-none select-none items-center"
+        className="relative flex h-5 w-full cursor-pointer touch-none select-none items-center"
         min={isLog ? 0 : min}
         max={isLog ? POS_MAX : max}
         step={isLog ? 1 : step}

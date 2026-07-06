@@ -27,4 +27,15 @@
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }
+
+  /* Show the pointer ("finger") cursor on all interactive controls. Tailwind's
+     Preflight leaves native <button>/<select> on the default arrow, unlike the
+     component-library controls — this brings them in line. Enabled controls only;
+     :disabled keeps the default (or an explicit disabled:cursor-* utility). */
+  button:not(:disabled),
+  [role='button'],
+  [role='slider'],
+  select:not(:disabled) {
+    cursor: pointer;
+  }
 }
