@@ -15,8 +15,8 @@ export function WishlistRow({
   viewMode: ViewMode
 }) {
   const price = useStore((s) => effectivePrice(car.id, s.prices))
-  const obtained = useStore((s) => s.obtained.includes(car.id))
-  const toggleObtained = useStore((s) => s.toggleObtained)
+  const acquired = useStore((s) => s.acquired.includes(car.id))
+  const toggleAcquired = useStore((s) => s.toggleAcquired)
   const removeFromWishlist = useStore((s) => s.removeFromWishlist)
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -37,15 +37,15 @@ export function WishlistRow({
   const dragProps = {
     ref: setNodeRef,
     style,
-    onClick: () => toggleObtained(car.id),
-    title: 'Click to toggle obtained; drag to reorder',
+    onClick: () => toggleAcquired(car.id),
+    title: 'Click to toggle acquired; drag to reorder',
     ...attributes,
     ...listeners,
   }
 
-  const obtainedOverlay = obtained ? (
+  const acquiredOverlay = acquired ? (
     <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-background/70">
-      <span className="text-sm font-bold uppercase tracking-widest text-primary">Obtained</span>
+      <span className="text-sm font-bold uppercase tracking-widest text-primary">Acquired</span>
     </div>
   ) : null
 
@@ -79,7 +79,7 @@ export function WishlistRow({
           &times;
         </button>
 
-        {obtainedOverlay}
+        {acquiredOverlay}
       </div>
     )
   }
@@ -143,7 +143,7 @@ export function WishlistRow({
         </div>
       </div>
 
-      {obtainedOverlay}
+      {acquiredOverlay}
     </div>
   )
 }

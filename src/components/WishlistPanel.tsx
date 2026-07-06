@@ -53,14 +53,14 @@ function Toggle({
 export function WishlistPanel() {
   const wishlist = useStore((s) => s.wishlist)
   const prices = useStore((s) => s.prices)
-  const obtained = useStore((s) => s.obtained)
+  const acquired = useStore((s) => s.acquired)
   const filters = useStore((s) => s.filters)
   const viewMode = useStore((s) => s.wishlistViewMode)
   const setViewMode = useStore((s) => s.setWishlistViewMode)
   const applyFilters = useStore((s) => s.applyFiltersToWishlist)
-  const hideObtained = useStore((s) => s.hideObtained)
+  const hideAcquired = useStore((s) => s.hideAcquired)
   const toggleApplyFilters = useStore((s) => s.toggleApplyFiltersToWishlist)
-  const toggleHideObtained = useStore((s) => s.toggleHideObtained)
+  const toggleHideAcquired = useStore((s) => s.toggleHideAcquired)
   const setWishlistOrder = useStore((s) => s.setWishlistOrder)
   const clearWishlist = useStore((s) => s.clearWishlist)
   const importWishlist = useStore((s) => s.importWishlist)
@@ -82,34 +82,34 @@ export function WishlistPanel() {
   }, [cars, applyFilters, filters, prices])
 
   const visible = useMemo(
-    () => scoped.filter((car) => !(hideObtained && obtained.includes(car.id))),
-    [scoped, hideObtained, obtained],
+    () => scoped.filter((car) => !(hideAcquired && acquired.includes(car.id))),
+    [scoped, hideAcquired, acquired],
   )
 
   const summary = useMemo(() => {
-    let obtainedCount = 0
-    let obtainedTotal = 0
-    let unobtainedCount = 0
-    let unobtainedTotal = 0
+    let acquiredCount = 0
+    let acquiredTotal = 0
+    let unacquiredCount = 0
+    let unacquiredTotal = 0
     for (const car of scoped) {
       const price = effectivePrice(car.id, prices) ?? 0
-      if (obtained.includes(car.id)) {
-        obtainedCount += 1
-        obtainedTotal += price
+      if (acquired.includes(car.id)) {
+        acquiredCount += 1
+        acquiredTotal += price
       } else {
-        unobtainedCount += 1
-        unobtainedTotal += price
+        unacquiredCount += 1
+        unacquiredTotal += price
       }
     }
     return {
-      obtainedCount,
-      obtainedTotal,
-      unobtainedCount,
-      unobtainedTotal,
-      totalCount: obtainedCount + unobtainedCount,
-      grandTotal: obtainedTotal + unobtainedTotal,
+      acquiredCount,
+      acquiredTotal,
+      unacquiredCount,
+      unacquiredTotal,
+      totalCount: acquiredCount + unacquiredCount,
+      grandTotal: acquiredTotal + unacquiredTotal,
     }
-  }, [scoped, obtained, prices])
+  }, [scoped, acquired, prices])
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -124,7 +124,7 @@ export function WishlistPanel() {
     exportWishlistCsv(
       wishlist,
       (id) => effectivePrice(id, prices),
-      (id) => obtained.includes(id),
+      (id) => acquired.includes(id),
     )
 
   const onImportFile = async (file: File) => {
@@ -207,7 +207,7 @@ export function WishlistPanel() {
           checked={applyFilters}
           onChange={toggleApplyFilters}
         />
-        <Toggle label="Hide obtained" checked={hideObtained} onChange={toggleHideObtained} />
+        <Toggle label="Hide acquired" checked={hideAcquired} onChange={toggleHideAcquired} />
         <input
           ref={fileRef}
           type="file"
@@ -251,15 +251,15 @@ export function WishlistPanel() {
       <div className="flex flex-col gap-1 border-t border-border px-4 py-3 text-sm">
         <div className="flex items-baseline justify-between capitalize text-muted-foreground">
           <span>
-            {summary.obtainedCount} car{summary.obtainedCount === 1 ? '' : 's'} obtained
+            {summary.acquiredCount} car{summary.acquiredCount === 1 ? '' : 's'} acquired
           </span>
-          <span className="tabular-nums">{summary.obtainedTotal.toLocaleString()} CR</span>
+          <span className="tabular-nums">{summary.acquiredTotal.toLocaleString()} CR</span>
         </div>
         <div className="flex items-baseline justify-between capitalize text-muted-foreground">
           <span>
-            {summary.unobtainedCount} car{summary.unobtainedCount === 1 ? '' : 's'} unobtained
+            {summary.unacquiredCount} car{summary.unacquiredCount === 1 ? '' : 's'} unacquired
           </span>
-          <span className="tabular-nums">{summary.unobtainedTotal.toLocaleString()} CR</span>
+          <span className="tabular-nums">{summary.unacquiredTotal.toLocaleString()} CR</span>
         </div>
         <div className="flex items-baseline justify-between border-t border-border pt-1 font-bold uppercase">
           <span>

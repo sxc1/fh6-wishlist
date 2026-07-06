@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A single-page wishlist tool for Forza Horizon 6 cars, published to GitHub Pages at `https://sxc1.github.io/fh6/`. Users filter/browse the car list and build a strictly-ordered wishlist with per-car price overrides, obtained tracking, and CSV export/import. All state lives in the browser's `localStorage` — there is no backend.
+A single-page wishlist tool for Forza Horizon 6 cars, published to GitHub Pages at `https://sxc1.github.io/fh6/`. Users filter/browse the car list and build a strictly-ordered wishlist with per-car price overrides, acquired tracking, and CSV export/import. All state lives in the browser's `localStorage` — there is no backend.
 
 ## Commands
 

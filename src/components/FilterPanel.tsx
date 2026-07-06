@@ -52,6 +52,8 @@ function Section({
 
 export function FilterPanel() {
   const filters = useStore((s) => s.filters)
+  const leftPanelCollapsed = useStore((s) => s.leftPanelCollapsed)
+  const toggleLeftPanel = useStore((s) => s.toggleLeftPanel)
   const toggleClass = useStore((s) => s.toggleClass)
   const toggleCategory = useStore((s) => s.toggleCategory)
   const toggleManufacturer = useStore((s) => s.toggleManufacturer)
@@ -72,10 +74,47 @@ export function FilterPanel() {
     (yearFiltered ? 1 : 0) +
     (costFiltered ? 1 : 0)
 
+  if (leftPanelCollapsed) {
+    return (
+      <div className="flex h-full w-12 flex-col items-center gap-3 py-3">
+        <button
+          type="button"
+          onClick={toggleLeftPanel}
+          title="Show filters"
+          className="rounded-md border border-input bg-card px-2 py-1 text-sm hover:bg-secondary"
+        >
+          »
+        </button>
+        {activeCount ? (
+          <span className="rounded-full bg-primary px-1.5 py-0.5 text-xs font-medium text-primary-foreground">
+            {activeCount}
+          </span>
+        ) : null}
+        <span
+          className="text-sm font-bold uppercase tracking-wide text-muted-foreground [writing-mode:vertical-rl]"
+        >
+          Filters
+        </span>
+      </div>
+    )
+  }
+
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full w-72 flex-col">
       <div className="flex items-center justify-between px-4 py-3">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Filters</h2>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={toggleLeftPanel}
+            title="Hide filters"
+            className="rounded-md border border-input bg-card px-2 py-1 text-sm hover:bg-secondary"
+          >
+            «
+          </button>
+          <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+            Filters
+          </h2>
+        </div>
         <button
           type="button"
           onClick={resetFilters}

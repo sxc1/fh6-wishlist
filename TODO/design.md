@@ -1,2 +1,2 @@
-- [ ] Attach filter panel expand/collapse control to the filter panel itself (not the header bar), and remove the header bar.
+- [x] Attach filter panel expand/collapse control to the filter panel itself (not the header bar), and remove the header bar.
 - [ ] Improve wishlist layout.

@@ -43,17 +43,17 @@ interface WishlistState {
   // Prices (overrides on top of CSV base price, set via CSV import)
   prices: Record<string, number>
 
-  // Obtained tracking
-  obtained: string[]
-  toggleObtained: (id: string) => void
+  // Acquired tracking
+  acquired: string[]
+  toggleAcquired: (id: string) => void
 
   // Wishlist view controls
   wishlistViewMode: ViewMode
   setWishlistViewMode: (mode: ViewMode) => void
   applyFiltersToWishlist: boolean
   toggleApplyFiltersToWishlist: () => void
-  hideObtained: boolean
-  toggleHideObtained: () => void
+  hideAcquired: boolean
+  toggleHideAcquired: () => void
 
   // App chrome
   leftPanelCollapsed: boolean
@@ -106,9 +106,9 @@ export const useStore = create<WishlistState>()(
 
       prices: {},
 
-      obtained: [],
-      toggleObtained: (id) =>
-        set((s) => ({ obtained: toggleValue(s.obtained, id) })),
+      acquired: [],
+      toggleAcquired: (id) =>
+        set((s) => ({ acquired: toggleValue(s.acquired, id) })),
 
       wishlistViewMode: 'tile',
       setWishlistViewMode: (wishlistViewMode) => set({ wishlistViewMode }),
@@ -116,8 +116,8 @@ export const useStore = create<WishlistState>()(
       applyFiltersToWishlist: false,
       toggleApplyFiltersToWishlist: () =>
         set((s) => ({ applyFiltersToWishlist: !s.applyFiltersToWishlist })),
-      hideObtained: false,
-      toggleHideObtained: () => set((s) => ({ hideObtained: !s.hideObtained })),
+      hideAcquired: false,
+      toggleHideAcquired: () => set((s) => ({ hideAcquired: !s.hideAcquired })),
 
       leftPanelCollapsed: false,
       toggleLeftPanel: () => set((s) => ({ leftPanelCollapsed: !s.leftPanelCollapsed })),
@@ -135,7 +135,7 @@ export const useStore = create<WishlistState>()(
     }),
     {
       name: 'fh6-wishlist',
-      version: 3,
+      version: 4,
       // v1 -> v2 added `wishlistViewMode`. The default shallow merge fills the
       // new field from initial state, so persisted state passes through as-is
       // (existing users keep their wishlist, prices, and browser viewMode).
@@ -143,8 +143,22 @@ export const useStore = create<WishlistState>()(
       // and made the top of each slider an open-ended bound. Clamp any stored
       // bound that sat above a new ceiling down to it, so the thumb stays on the
       // track and the range still admits the out-of-domain outliers.
+      // v3 -> v4 renamed `obtained` -> `acquired` and `hideObtained` ->
+      // `hideAcquired`. Carry the old values across so existing users keep their
+      // acquired-car tracking and hide toggle.
       migrate: (persisted) => {
-        const s = persisted as WishlistState
+        const s = persisted as WishlistState & {
+          obtained?: string[]
+          hideObtained?: boolean
+        }
+        if (s?.obtained && !s.acquired) {
+          s.acquired = s.obtained
+          delete s.obtained
+        }
+        if (typeof s?.hideObtained === 'boolean' && s.hideAcquired === undefined) {
+          s.hideAcquired = s.hideObtained
+          delete s.hideObtained
+        }
         if (s?.filters) {
           const [y0, y1] = s.filters.yearRange
           const [c0, c1] = s.filters.costRange

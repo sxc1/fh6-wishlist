@@ -1,5 +1,5 @@
 - [x] Switch car list display to single-column tile format.
 - [x] Remove input ability for cost.
 - [x] Remove draggable icon.
-- [x] Remove obtained checkbox; clicking a car tile should mark/unmark obtained and show an `"Obtained"` overlay.
-- [x] Add "Obtained" column as first column of wishlist export, filled with 1 (obtained) or 0 (unobtained)
+- [x] Remove acquired checkbox; clicking a car tile should mark/unmark acquired and show an `"Acquired"` overlay.
+- [x] Add "Acquired" column as first column of wishlist export, filled with 1 (acquired) or 0 (unacquired)
