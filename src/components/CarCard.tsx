@@ -11,30 +11,27 @@ function useCarBindings(car: Car) {
   return { inWishlist, price, addToWishlist, removeFromWishlist }
 }
 
-function AddButton({ inWishlist, onClick }: { inWishlist: boolean; onClick: () => void }) {
+function AddedOverlay() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`shrink-0 rounded-md px-3 py-1.5 text-sm font-semibold transition-colors ${
-        inWishlist
-          ? 'bg-secondary text-secondary-foreground hover:bg-destructive hover:text-destructive-foreground'
-          : 'bg-primary text-primary-foreground hover:opacity-90'
-      }`}
-    >
-      {inWishlist ? 'In list' : '+ Add'}
-    </button>
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-lg bg-background/70">
+      <span className="text-sm font-bold uppercase tracking-widest text-primary">Added</span>
+    </div>
   )
 }
 
 export function CarCard({ car, viewMode }: { car: Car; viewMode: ViewMode }) {
   const { inWishlist, price, addToWishlist, removeFromWishlist } = useCarBindings(car)
   const toggle = () => (inWishlist ? removeFromWishlist(car.id) : addToWishlist(car.id))
+  const title = inWishlist ? 'Click to remove from wishlist' : 'Click to add to wishlist'
 
   if (viewMode === 'tile') {
     const imageUrl = carImageUrl(car)
     return (
-      <div className="flex flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+      <div
+        onClick={toggle}
+        title={title}
+        className="relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card shadow-sm"
+      >
         {/* Hero render on a light "studio" backdrop so cars of every color stay legible. */}
         <div className="aspect-[16/9] w-full bg-[radial-gradient(circle_at_50%_35%,#f8fafc,#cbd5e1)]">
           {imageUrl ? (
@@ -72,15 +69,19 @@ export function CarCard({ car, viewMode }: { car: Car; viewMode: ViewMode }) {
           </div>
           <div className="mt-auto flex items-center justify-between gap-2 pt-1">
             <PriceDisplay value={price} />
-            <AddButton inWishlist={inWishlist} onClick={toggle} />
           </div>
         </div>
+        {inWishlist ? <AddedOverlay /> : null}
       </div>
     )
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 shadow-sm">
+    <div
+      onClick={toggle}
+      title={title}
+      className="relative flex cursor-pointer items-center gap-3 rounded-lg border border-border bg-card px-3 py-2 shadow-sm"
+    >
       <ClassBadge carClass={car.carClass} rating={car.classRating} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold">{car.name}</div>
@@ -92,7 +93,7 @@ export function CarCard({ car, viewMode }: { car: Car; viewMode: ViewMode }) {
         {car.year}
       </span>
       <PriceDisplay value={price} className="w-24" />
-      <AddButton inWishlist={inWishlist} onClick={toggle} />
+      {inWishlist ? <AddedOverlay /> : null}
     </div>
   )
 }
