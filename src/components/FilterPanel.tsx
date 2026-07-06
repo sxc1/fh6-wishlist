@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import {
   CAR_TYPES,
   CLASSES,
@@ -16,22 +16,17 @@ import { RangeSlider } from './RangeSlider'
 function Section({
   title,
   count,
+  onClear,
   children,
-  defaultOpen = true,
 }: {
   title: string
   count?: number
+  onClear?: () => void
   children: ReactNode
-  defaultOpen?: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen)
   return (
     <div className="border-b border-border py-3">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center justify-between text-left text-sm font-semibold"
-      >
+      <div className="flex w-full items-center justify-between text-left text-sm font-semibold">
         <span className="flex items-center gap-2">
           {title}
           {count ? (
@@ -40,14 +35,17 @@ function Section({
             </span>
           ) : null}
         </span>
-        <span
-          className={`text-muted-foreground transition-transform ${open ? 'rotate-90' : ''}`}
-          aria-hidden
-        >
-          &#9656;
-        </span>
-      </button>
-      {open ? <div className="mt-3">{children}</div> : null}
+        {onClear ? (
+          <button
+            type="button"
+            onClick={onClear}
+            className="rounded-md px-2 py-1 text-xs font-medium text-primary hover:bg-secondary"
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+      <div className="mt-3">{children}</div>
     </div>
   )
 }
@@ -57,16 +55,22 @@ export function FilterPanel() {
   const toggleClass = useStore((s) => s.toggleClass)
   const toggleCategory = useStore((s) => s.toggleCategory)
   const toggleManufacturer = useStore((s) => s.toggleManufacturer)
+  const clearClasses = useStore((s) => s.clearClasses)
+  const clearCategories = useStore((s) => s.clearCategories)
+  const clearManufacturers = useStore((s) => s.clearManufacturers)
   const setYearRange = useStore((s) => s.setYearRange)
   const setCostRange = useStore((s) => s.setCostRange)
   const resetFilters = useStore((s) => s.resetFilters)
+
+  const yearFiltered = filters.yearRange[0] !== YEAR_MIN || filters.yearRange[1] !== YEAR_MAX
+  const costFiltered = filters.costRange[0] !== COST_FLOOR || filters.costRange[1] !== COST_CEIL
 
   const activeCount =
     filters.classes.length +
     filters.categories.length +
     filters.manufacturers.length +
-    (filters.yearRange[0] !== YEAR_MIN || filters.yearRange[1] !== YEAR_MAX ? 1 : 0) +
-    (filters.costRange[0] !== COST_FLOOR || filters.costRange[1] !== COST_CEIL ? 1 : 0)
+    (yearFiltered ? 1 : 0) +
+    (costFiltered ? 1 : 0)
 
   return (
     <div className="flex h-full flex-col">
@@ -83,7 +87,11 @@ export function FilterPanel() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
-        <Section title="Class" count={filters.classes.length}>
+        <Section
+          title="Class"
+          count={filters.classes.length}
+          onClear={filters.classes.length ? clearClasses : undefined}
+        >
           <div className="flex flex-wrap gap-2">
             {CLASSES.map((c) => {
               const active = filters.classes.includes(c)
@@ -105,7 +113,11 @@ export function FilterPanel() {
           </div>
         </Section>
 
-        <Section title="Category" count={filters.categories.length}>
+        <Section
+          title="Category"
+          count={filters.categories.length}
+          onClear={filters.categories.length ? clearCategories : undefined}
+        >
           <MultiSelect
             options={CAR_TYPES}
             selected={filters.categories}
@@ -115,7 +127,11 @@ export function FilterPanel() {
           />
         </Section>
 
-        <Section title="Manufacturer" count={filters.manufacturers.length}>
+        <Section
+          title="Manufacturer"
+          count={filters.manufacturers.length}
+          onClear={filters.manufacturers.length ? clearManufacturers : undefined}
+        >
           <MultiSelect
             options={MAKES}
             selected={filters.manufacturers}
@@ -125,7 +141,10 @@ export function FilterPanel() {
           />
         </Section>
 
-        <Section title="Year range">
+        <Section
+          title="Year range"
+          onClear={yearFiltered ? () => setYearRange([YEAR_MIN, YEAR_MAX]) : undefined}
+        >
           <RangeSlider
             min={YEAR_MIN}
             max={YEAR_MAX}
@@ -135,7 +154,10 @@ export function FilterPanel() {
           />
         </Section>
 
-        <Section title="Price range">
+        <Section
+          title="Price range"
+          onClear={costFiltered ? () => setCostRange([COST_FLOOR, COST_CEIL]) : undefined}
+        >
           <RangeSlider
             min={COST_FLOOR}
             max={COST_CEIL}
@@ -144,6 +166,7 @@ export function FilterPanel() {
             onChange={setCostRange}
             formatValue={(v) => v.toLocaleString()}
             openEndedMax
+            scale="log"
           />
         </Section>
       </div>

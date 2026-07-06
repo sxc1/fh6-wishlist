@@ -107,4 +107,4 @@ export const YEAR_MAX = 2027
  */
 export const COST_FLOOR = 0
 export const COST_CEIL = 5_000_000
-export const COST_STEP = 10_000
+export const COST_STEP = 1_000

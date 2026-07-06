@@ -1,8 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   RangeSlider as KendoRangeSlider,
   type RangeSliderChangeEvent,
 } from '@progress/kendo-react-inputs'
+
+/**
+ * Delay (ms) before an in-progress drag commits to the store, which re-filters and
+ * re-renders the whole car list. Higher = smoother dragging, but the list lags further
+ * behind the thumb.
+ * 
+ * Set to 0 to disable debouncing entirely and commit on every drag
+ * event (the pre-debounce behavior)
+ */
+const COMMIT_DEBOUNCE_MS = 0
 
 interface RangeSliderProps {
   min: number
@@ -17,6 +27,14 @@ interface RangeSliderProps {
    * trailing "+" (e.g. "2027+"), signalling everything beyond `max` is included too.
    */
   openEndedMax?: boolean
+  /**
+   * Track scale. 'linear' (default) spaces values evenly; 'log' gives the low end of the
+   * range far more of the track — useful when values span several orders of magnitude and
+   * cluster near the bottom (e.g. car prices from a few thousand to tens of millions CR).
+   * Only the track positioning changes: value, onChange, and the text inputs stay in real
+   * value space. Assumes `min >= 0`.
+   */
+  scale?: 'linear' | 'log'
 }
 
 /**
@@ -90,8 +108,56 @@ export function RangeSlider({
   onChange,
   formatValue = (v) => String(v),
   openEndedMax = false,
+  scale = 'linear',
 }: RangeSliderProps) {
-  const [lo, hi] = value
+  const isLog = scale === 'log'
+
+  // In log mode the Kendo track runs over an integer "position" space [0, POS_MAX] and we
+  // map to/from real values, so the low end of the range gets more of the track. `offset`
+  // keeps the log finite when min is 0 and controls how aggressively the low end expands
+  // (~2.7 decades across the track regardless of the absolute domain).
+  const POS_MAX = 1000
+  const offset = Math.max(1, (max - min) / 500)
+  const logLo = Math.log(min + offset)
+  const logHi = Math.log(max + offset)
+  const toPos = (v: number) => {
+    if (!isLog) return v
+    const c = Math.min(max, Math.max(min, v))
+    return ((Math.log(c + offset) - logLo) / (logHi - logLo)) * POS_MAX
+  }
+  const fromPos = (p: number) => {
+    if (!isLog) return p
+    const frac = Math.min(1, Math.max(0, p / POS_MAX))
+    return Math.exp(logLo + frac * (logHi - logLo)) - offset
+  }
+
+  // Dragging fires a stream of changes; committing each to the store re-filters and
+  // re-renders the whole car list, which makes the thumb stutter. So hold the in-progress
+  // value locally (only this slider re-renders per move) and debounce the store commit so
+  // the list updates once the drag settles. Text-input edits are discrete → commit at once.
+  const [draft, setDraft] = useState<[number, number] | null>(null)
+  const commitTimer = useRef<number | undefined>(undefined)
+  const [lo, hi] = draft ?? value
+  useEffect(() => () => window.clearTimeout(commitTimer.current), [])
+
+  const commitNow = (next: [number, number]) => {
+    window.clearTimeout(commitTimer.current)
+    setDraft(null)
+    onChange(next)
+  }
+  const commitDebounced = (next: [number, number]) => {
+    // 0 → no debounce: commit straight through on every drag event (no local draft).
+    if (COMMIT_DEBOUNCE_MS <= 0) {
+      onChange(next)
+      return
+    }
+    setDraft(next)
+    window.clearTimeout(commitTimer.current)
+    commitTimer.current = window.setTimeout(() => {
+      setDraft(null)
+      onChange(next)
+    }, COMMIT_DEBOUNCE_MS)
+  }
 
   // At the ceiling, the max bound reads "…+"; below it, it formats like any other value.
   const formatMax =
@@ -101,17 +167,21 @@ export function RangeSlider({
     <div>
       <KendoRangeSlider
         className="fh6-range"
-        min={min}
-        max={max}
-        step={step}
-        value={{ start: lo, end: hi }}
+        min={isLog ? 0 : min}
+        max={isLog ? POS_MAX : max}
+        step={isLog ? 1 : step}
+        value={{ start: toPos(lo), end: toPos(hi) }}
         onChange={(e: RangeSliderChangeEvent) => {
-          // KendoReact's `step` only governs keyboard arrows; dragging emits
-          // continuous floats, so snap to `step` (and clamp) to keep values integral.
-          const snap = (v: number) => Math.min(max, Math.max(min, Math.round(v / step) * step))
+          // KendoReact's `step` only governs keyboard arrows; dragging emits continuous
+          // floats. Map back to a real value, then snap to `step` (and clamp) so committed
+          // bounds stay integral in either scale.
+          const snap = (raw: number) => {
+            const v = fromPos(raw)
+            return Math.min(max, Math.max(min, Math.round(v / step) * step))
+          }
           const s = snap(e.value.start)
           const en = snap(e.value.end)
-          onChange([Math.min(s, en), Math.max(s, en)])
+          commitDebounced([Math.min(s, en), Math.max(s, en)])
         }}
       />
       <div className="mt-2 flex items-center justify-between gap-2">
@@ -120,7 +190,7 @@ export function RangeSlider({
           lo={min}
           hi={hi}
           step={step}
-          onCommit={(n) => onChange([n, hi])}
+          onCommit={(n) => commitNow([n, hi])}
           formatValue={formatValue}
           align="left"
           ariaLabel="Minimum"
@@ -130,7 +200,7 @@ export function RangeSlider({
           lo={lo}
           hi={max}
           step={step}
-          onCommit={(n) => onChange([lo, n])}
+          onCommit={(n) => commitNow([lo, n])}
           formatValue={formatMax}
           align="right"
           ariaLabel="Maximum"

@@ -76,21 +76,40 @@ export function WishlistPanel() {
     [wishlist],
   )
 
-  const visible = useMemo(() => {
+  const scoped = useMemo(() => {
     const priceOf = (id: string) => effectivePrice(id, prices) ?? 0
-    return cars.filter((car) => {
-      if (hideObtained && obtained.includes(car.id)) return false
-      if (applyFilters && !matchesFilters(car, filters, priceOf)) return false
-      return true
-    })
-  }, [cars, hideObtained, obtained, applyFilters, filters, prices])
+    return cars.filter((car) => !applyFilters || matchesFilters(car, filters, priceOf))
+  }, [cars, applyFilters, filters, prices])
 
-  const total = useMemo(
-    () => visible.reduce((sum, car) => sum + (effectivePrice(car.id, prices) ?? 0), 0),
-    [visible, prices],
+  const visible = useMemo(
+    () => scoped.filter((car) => !(hideObtained && obtained.includes(car.id))),
+    [scoped, hideObtained, obtained],
   )
 
-  const obtainedCount = wishlist.filter((id) => obtained.includes(id)).length
+  const summary = useMemo(() => {
+    let obtainedCount = 0
+    let obtainedTotal = 0
+    let unobtainedCount = 0
+    let unobtainedTotal = 0
+    for (const car of scoped) {
+      const price = effectivePrice(car.id, prices) ?? 0
+      if (obtained.includes(car.id)) {
+        obtainedCount += 1
+        obtainedTotal += price
+      } else {
+        unobtainedCount += 1
+        unobtainedTotal += price
+      }
+    }
+    return {
+      obtainedCount,
+      obtainedTotal,
+      unobtainedCount,
+      unobtainedTotal,
+      totalCount: obtainedCount + unobtainedCount,
+      grandTotal: obtainedTotal + unobtainedTotal,
+    }
+  }, [scoped, obtained, prices])
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
@@ -122,26 +141,32 @@ export function WishlistPanel() {
   return (
     <div className="flex h-full flex-col">
       <div className="border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <h2 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
             Wishlist
           </h2>
-          <span className="text-xs text-muted-foreground">
-            {wishlist.length} car{wishlist.length === 1 ? '' : 's'}
-            {obtainedCount ? ` · ${obtainedCount} obtained` : ''}
-          </span>
-        </div>
-        <div className="mt-2 flex items-baseline justify-between">
-          <span className="text-xs text-muted-foreground">
-            {applyFilters || hideObtained ? 'Shown total' : 'Total'}
-          </span>
-          <span className="text-lg font-bold tabular-nums">{total.toLocaleString()} CR</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="rounded-md border border-input bg-card px-3 py-1.5 text-sm font-semibold hover:bg-secondary"
+            >
+              Import CSV
+            </button>
+            <button
+              type="button"
+              onClick={onExport}
+              disabled={wishlist.length === 0}
+              className="rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Export CSV
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col gap-2 border-b border-border px-4 py-3">
         <div className="flex items-center justify-between gap-2 text-sm">
-          <span>View</span>
           <div className="flex overflow-hidden rounded-md border border-input">
             <button
               type="button"
@@ -166,6 +191,16 @@ export function WishlistPanel() {
               List
             </button>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (wishlist.length && confirm('Clear the entire wishlist?')) clearWishlist()
+            }}
+            disabled={wishlist.length === 0}
+            className="rounded-md px-3 py-1.5 text-sm font-semibold text-destructive hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Clear
+          </button>
         </div>
         <Toggle
           label="Apply filters to wishlist"
@@ -173,44 +208,17 @@ export function WishlistPanel() {
           onChange={toggleApplyFilters}
         />
         <Toggle label="Hide obtained" checked={hideObtained} onChange={toggleHideObtained} />
-        <div className="mt-1 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onExport}
-            disabled={wishlist.length === 0}
-            className="flex-1 rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Export CSV
-          </button>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            className="flex-1 rounded-md border border-input bg-card px-3 py-1.5 text-sm font-semibold hover:bg-secondary"
-          >
-            Import CSV
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (wishlist.length && confirm('Clear the entire wishlist?')) clearWishlist()
-            }}
-            disabled={wishlist.length === 0}
-            className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Clear
-          </button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".csv,text/csv"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0]
-              if (file) void onImportFile(file)
-              e.target.value = ''
-            }}
-          />
-        </div>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".csv,text/csv"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) void onImportFile(file)
+            e.target.value = ''
+          }}
+        />
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -238,6 +246,27 @@ export function WishlistPanel() {
             </SortableContext>
           </DndContext>
         )}
+      </div>
+
+      <div className="flex flex-col gap-1 border-t border-border px-4 py-3 text-sm">
+        <div className="flex items-baseline justify-between capitalize text-muted-foreground">
+          <span>
+            {summary.obtainedCount} car{summary.obtainedCount === 1 ? '' : 's'} obtained
+          </span>
+          <span className="tabular-nums">{summary.obtainedTotal.toLocaleString()} CR</span>
+        </div>
+        <div className="flex items-baseline justify-between capitalize text-muted-foreground">
+          <span>
+            {summary.unobtainedCount} car{summary.unobtainedCount === 1 ? '' : 's'} unobtained
+          </span>
+          <span className="tabular-nums">{summary.unobtainedTotal.toLocaleString()} CR</span>
+        </div>
+        <div className="flex items-baseline justify-between border-t border-border pt-1 font-bold uppercase">
+          <span>
+            {summary.totalCount} car{summary.totalCount === 1 ? '' : 's'} total
+          </span>
+          <span className="tabular-nums">{summary.grandTotal.toLocaleString()} CR</span>
+        </div>
       </div>
     </div>
   )

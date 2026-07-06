@@ -17,6 +17,9 @@ interface WishlistState {
   toggleClass: (value: string) => void
   toggleCategory: (value: string) => void
   toggleManufacturer: (value: string) => void
+  clearClasses: () => void
+  clearCategories: () => void
+  clearManufacturers: () => void
   setYearRange: (range: [number, number]) => void
   setCostRange: (range: [number, number]) => void
   resetFilters: () => void
@@ -78,6 +81,9 @@ export const useStore = create<WishlistState>()(
         set((s) => ({
           filters: { ...s.filters, manufacturers: toggleValue(s.filters.manufacturers, value) },
         })),
+      clearClasses: () => set((s) => ({ filters: { ...s.filters, classes: [] } })),
+      clearCategories: () => set((s) => ({ filters: { ...s.filters, categories: [] } })),
+      clearManufacturers: () => set((s) => ({ filters: { ...s.filters, manufacturers: [] } })),
       setYearRange: (range) => set((s) => ({ filters: { ...s.filters, yearRange: range } })),
       setCostRange: (range) => set((s) => ({ filters: { ...s.filters, costRange: range } })),
       resetFilters: () => set({ filters: DEFAULT_FILTERS }),
