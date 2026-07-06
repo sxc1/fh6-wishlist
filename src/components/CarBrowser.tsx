@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { CARS } from '../lib/cars'
-import { compareCars, matchesFilters, matchesSearch } from '../lib/filtering'
+import { compareCars, isUnobtainable, matchesFilters, matchesSearch } from '../lib/filtering'
 import type { SortField } from '../lib/types'
 import { effectivePrice, useStore } from '../store'
 import { CarCard } from './CarCard'
@@ -27,8 +27,12 @@ export function CarBrowser() {
 
   const cars = useMemo(() => {
     const priceOf = (id: string) => effectivePrice(id, prices) ?? 0
+    // Unobtainable cars can never be acquired, so they're always hidden here.
     return CARS.filter(
-      (c) => matchesFilters(c, filters, priceOf) && matchesSearch(c, search),
+      (c) =>
+        !isUnobtainable(c) &&
+        matchesFilters(c, filters, priceOf) &&
+        matchesSearch(c, search),
     ).sort((a, b) => compareCars(a, b, sortField, sortDir, priceOf))
   }, [filters, search, sortField, sortDir, prices])
 

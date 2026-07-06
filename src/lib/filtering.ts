@@ -20,6 +20,14 @@ export function matchesFilters(
   return true
 }
 
+/**
+ * Cars flagged `Unobtainable` in the CSV `Collection` column can no longer be
+ * acquired in-game, so the browser can optionally hide them (see `hideUnobtainable`).
+ */
+export function isUnobtainable(car: Car): boolean {
+  return car.collection.includes('Unobtainable')
+}
+
 export function matchesSearch(car: Car, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
