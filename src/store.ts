@@ -7,6 +7,7 @@ export const DEFAULT_FILTERS: Filters = {
   classes: [],
   categories: [],
   manufacturers: [],
+  countries: [],
   yearRange: [YEAR_MIN, YEAR_MAX],
   costRange: [COST_FLOOR, COST_CEIL],
 }
@@ -17,9 +18,11 @@ interface WishlistState {
   toggleClass: (value: string) => void
   toggleCategory: (value: string) => void
   toggleManufacturer: (value: string) => void
+  toggleCountry: (value: string) => void
   clearClasses: () => void
   clearCategories: () => void
   clearManufacturers: () => void
+  clearCountries: () => void
   setYearRange: (range: [number, number]) => void
   setCostRange: (range: [number, number]) => void
   resetFilters: () => void
@@ -81,9 +84,14 @@ export const useStore = create<WishlistState>()(
         set((s) => ({
           filters: { ...s.filters, manufacturers: toggleValue(s.filters.manufacturers, value) },
         })),
+      toggleCountry: (value) =>
+        set((s) => ({
+          filters: { ...s.filters, countries: toggleValue(s.filters.countries, value) },
+        })),
       clearClasses: () => set((s) => ({ filters: { ...s.filters, classes: [] } })),
       clearCategories: () => set((s) => ({ filters: { ...s.filters, categories: [] } })),
       clearManufacturers: () => set((s) => ({ filters: { ...s.filters, manufacturers: [] } })),
+      clearCountries: () => set((s) => ({ filters: { ...s.filters, countries: [] } })),
       setYearRange: (range) => set((s) => ({ filters: { ...s.filters, yearRange: range } })),
       setCostRange: (range) => set((s) => ({ filters: { ...s.filters, costRange: range } })),
       resetFilters: () => set({ filters: DEFAULT_FILTERS }),
@@ -135,7 +143,7 @@ export const useStore = create<WishlistState>()(
     }),
     {
       name: 'fh6-wishlist',
-      version: 4,
+      version: 5,
       // v1 -> v2 added `wishlistViewMode`. The default shallow merge fills the
       // new field from initial state, so persisted state passes through as-is
       // (existing users keep their wishlist, prices, and browser viewMode).
@@ -146,6 +154,9 @@ export const useStore = create<WishlistState>()(
       // v3 -> v4 renamed `obtained` -> `acquired` and `hideObtained` ->
       // `hideAcquired`. Carry the old values across so existing users keep their
       // acquired-car tracking and hide toggle.
+      // v4 -> v5 added the `countries` filter. The persisted `filters` object
+      // replaces the default wholesale on rehydration, so backfill `countries`
+      // to an empty array or `matchesFilters` reads `.length` off undefined.
       migrate: (persisted) => {
         const s = persisted as WishlistState & {
           obtained?: string[]
@@ -164,6 +175,7 @@ export const useStore = create<WishlistState>()(
           const [c0, c1] = s.filters.costRange
           s.filters = {
             ...s.filters,
+            countries: s.filters.countries ?? [],
             yearRange: [Math.max(YEAR_MIN, y0), Math.min(YEAR_MAX, y1)],
             costRange: [Math.max(COST_FLOOR, c0), Math.min(COST_CEIL, c1)],
           }

@@ -22,6 +22,7 @@ export interface Filters {
   classes: string[]
   categories: string[]
   manufacturers: string[]
+  countries: string[]
   yearRange: [number, number]
   costRange: [number, number]
 }

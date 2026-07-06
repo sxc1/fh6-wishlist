@@ -9,6 +9,7 @@ export function matchesFilters(
   if (filters.classes.length && !filters.classes.includes(car.carClass)) return false
   if (filters.categories.length && !filters.categories.includes(car.type)) return false
   if (filters.manufacturers.length && !filters.manufacturers.includes(car.make)) return false
+  if (filters.countries.length && !filters.countries.includes(car.country)) return false
   // The top of each slider is an open-ended bound: at the ceiling we drop the upper
   // limit so out-of-domain outliers (the 2554 car, 5M+ prices) still show through.
   const yearMax = filters.yearRange[1] >= YEAR_MAX ? Infinity : filters.yearRange[1]

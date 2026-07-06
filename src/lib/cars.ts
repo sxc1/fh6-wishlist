@@ -84,6 +84,11 @@ export const CAR_TYPES: string[] = [...new Set(CARS.map((c) => c.type))].sort((a
   a.localeCompare(b),
 )
 
+/** Sorted distinct countries of origin (empty values dropped). */
+export const COUNTRIES: string[] = [...new Set(CARS.map((c) => c.country).filter(Boolean))].sort(
+  (a, b) => a.localeCompare(b),
+)
+
 /**
  * Class filter options, hardcoded (fastest→slowest) so the UI always offers the
  * full set regardless of what's currently present in the CSV.

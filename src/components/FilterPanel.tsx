@@ -5,6 +5,7 @@ import {
   COST_CEIL,
   COST_FLOOR,
   COST_STEP,
+  COUNTRIES,
   MAKES,
   YEAR_MAX,
   YEAR_MIN,
@@ -58,9 +59,11 @@ export function FilterPanel() {
   const toggleClass = useStore((s) => s.toggleClass)
   const toggleCategory = useStore((s) => s.toggleCategory)
   const toggleManufacturer = useStore((s) => s.toggleManufacturer)
+  const toggleCountry = useStore((s) => s.toggleCountry)
   const clearClasses = useStore((s) => s.clearClasses)
   const clearCategories = useStore((s) => s.clearCategories)
   const clearManufacturers = useStore((s) => s.clearManufacturers)
+  const clearCountries = useStore((s) => s.clearCountries)
   const setYearRange = useStore((s) => s.setYearRange)
   const setCostRange = useStore((s) => s.setCostRange)
   const resetFilters = useStore((s) => s.resetFilters)
@@ -72,6 +75,7 @@ export function FilterPanel() {
     filters.classes.length +
     filters.categories.length +
     filters.manufacturers.length +
+    filters.countries.length +
     (yearFiltered ? 1 : 0) +
     (costFiltered ? 1 : 0)
 
@@ -184,6 +188,20 @@ export function FilterPanel() {
             onToggle={toggleManufacturer}
             placeholder="All manufacturers"
             searchPlaceholder="Search manufacturers..."
+          />
+        </Section>
+
+        <Section
+          title="Country"
+          count={filters.countries.length}
+          onClear={filters.countries.length ? clearCountries : undefined}
+        >
+          <MultiSelect
+            options={COUNTRIES}
+            selected={filters.countries}
+            onToggle={toggleCountry}
+            placeholder="All countries"
+            searchPlaceholder="Search countries..."
           />
         </Section>
 
