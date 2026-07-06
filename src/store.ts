@@ -143,7 +143,7 @@ export const useStore = create<WishlistState>()(
     }),
     {
       name: 'fh6-wishlist',
-      version: 5,
+      version: 6,
       // v1 -> v2 added `wishlistViewMode`. The default shallow merge fills the
       // new field from initial state, so persisted state passes through as-is
       // (existing users keep their wishlist, prices, and browser viewMode).
@@ -157,11 +157,15 @@ export const useStore = create<WishlistState>()(
       // v4 -> v5 added the `countries` filter. The persisted `filters` object
       // replaces the default wholesale on rehydration, so backfill `countries`
       // to an empty array or `matchesFilters` reads `.length` off undefined.
+      // v5 -> v6 removed the `'rating'` sort. Remap any persisted `sortField:
+      // 'rating'` to `'class'` (near-identical order) or `compareCars` hits no
+      // case and returns 0, leaving the list unsorted for those users.
       migrate: (persisted) => {
         const s = persisted as WishlistState & {
           obtained?: string[]
           hideObtained?: boolean
         }
+        if ((s?.sortField as string) === 'rating') s.sortField = 'class'
         if (s?.obtained && !s.acquired) {
           s.acquired = s.obtained
           delete s.obtained

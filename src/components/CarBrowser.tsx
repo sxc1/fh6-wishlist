@@ -10,7 +10,6 @@ const SORT_OPTIONS: { value: SortField; label: string }[] = [
   { value: 'name', label: 'Name' },
   { value: 'year', label: 'Year' },
   { value: 'class', label: 'Class' },
-  { value: 'rating', label: 'Class rating' },
   { value: 'price', label: 'Price' },
 ]
 

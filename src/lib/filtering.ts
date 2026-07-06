@@ -60,9 +60,6 @@ export function compareCars(
     case 'class':
       result = classRank(a.carClass) - classRank(b.carClass) || a.classRating - b.classRating
       break
-    case 'rating':
-      result = a.classRating - b.classRating
-      break
     case 'price':
       result = priceOf(a.id) - priceOf(b.id)
       break

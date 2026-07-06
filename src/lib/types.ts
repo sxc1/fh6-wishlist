@@ -15,7 +15,7 @@ export interface Car {
 
 export type ViewMode = 'list' | 'tile'
 
-export type SortField = 'name' | 'year' | 'make' | 'class' | 'rating' | 'price'
+export type SortField = 'name' | 'year' | 'make' | 'class' | 'price'
 export type SortDir = 'asc' | 'desc'
 
 export interface Filters {
