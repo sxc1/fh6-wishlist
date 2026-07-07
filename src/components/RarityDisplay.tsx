@@ -1,11 +1,13 @@
 import { PillBadge } from './PillBadge'
 
 const RARITY_STYLES: Record<string, string> = {
-  Common: 'bg-slate-700 text-slate-100',
-  Rare: 'bg-blue-700 text-blue-100',
-  Epic: 'bg-purple-700 text-purple-100',
-  Legendary: 'bg-amber-500 text-amber-950',
-  'Treasure Car': 'bg-emerald-600 text-emerald-100',
+  Common: 'bg-[#23B224] text-white',
+  Rare: 'bg-[#1BA8CD] text-white',
+  Epic: 'bg-[#BE45DF] text-white',
+  Legendary: 'bg-[#F28C00] text-white',
+  'Forza Edition': 'bg-gradient-to-r from-[#C83CFF] to-[#4E67FF] text-white',
+  'Treasure Car': 'bg-[#F28C00] text-white',
+  'Barn Find': 'bg-[#F28C00] text-white',
   Unknown: 'bg-muted text-muted-foreground',
 }
 
@@ -13,7 +15,7 @@ export function RarityDisplay({ rarity }: { rarity: string }) {
   const normalized = rarity.trim() || 'Unknown'
   const style = RARITY_STYLES[normalized] ?? RARITY_STYLES.Unknown
   return (
-    <PillBadge className={style} title={`Rarity: ${normalized}`}>
+    <PillBadge className={`font-bold uppercase ${style}`} title={`Rarity: ${normalized}`}>
       {normalized}
     </PillBadge>
   )
