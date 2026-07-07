@@ -1,9 +1,11 @@
 import { effectivePrice, useStore } from '../store'
 import type { Car, ViewMode } from '../lib/types'
 import { carImageUrl } from '../lib/carImages'
+import { CarTypeBadge } from './CarTypeBadge'
 import { ClassBadge } from './ClassBadge'
 import { CountryFlag } from './CountryFlag'
 import { PriceDisplay } from './PriceDisplay'
+import { RarityDisplay } from './RarityDisplay'
 
 function useCarBindings(car: Car) {
   const inWishlist = useStore((s) => s.wishlist.includes(car.id))
@@ -52,22 +54,21 @@ export function CarCard({ car, viewMode }: { car: Car; viewMode: ViewMode }) {
         </div>
         <div className="flex flex-1 flex-col gap-2 p-3">
           <div className="flex items-start justify-between gap-2">
-            <ClassBadge carClass={car.carClass} rating={car.classRating} />
-            <span className="text-xs text-muted-foreground">{car.year}</span>
-          </div>
-          <div className="min-h-10">
-            <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              {car.make}
+            <div className="flex min-w-0 items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              <CountryFlag country={car.country} />
+              <span className="truncate">{car.make}</span>
             </div>
-            <div className="text-sm font-semibold leading-tight">{car.name}</div>
+            <ClassBadge carClass={car.carClass} rating={car.classRating} />
           </div>
-          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-            <span className="rounded bg-secondary px-1.5 py-0.5 text-secondary-foreground">
-              {car.type}
-            </span>
-            <CountryFlag country={car.country} />
+          <div className="min-h-5 text-sm font-semibold leading-tight">
+            <span className="text-muted-foreground">{car.year}</span>{' '}
+            <span>{car.modelName}</span>
           </div>
           <div className="mt-auto flex items-center justify-between gap-2 pt-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <RarityDisplay rarity={car.rarity} />
+              <CarTypeBadge type={car.type} />
+            </div>
             <PriceDisplay value={price} />
           </div>
         </div>

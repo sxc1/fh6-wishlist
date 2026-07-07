@@ -5,10 +5,12 @@ import { type Car } from './types'
 interface RawRow {
   Make: string
   'Car Name': string
+  'Model Name': string
   Year: string
   'Car Type': string
   'Car Class': string
   'Class Rating': string
+  Rarity: string
   Country: string
   Collection: string
   'Add-Ons': string
@@ -17,6 +19,11 @@ interface RawRow {
 
 export function makeCarId(make: string, name: string): string {
   return `${make}__${name}`
+}
+
+function deriveModelName(make: string, name: string, year: number): string {
+  const prefix = `${year} ${make} `
+  return name.startsWith(prefix) ? name.slice(prefix.length).trim() : name
 }
 
 function parseCars(): Car[] {
@@ -56,10 +63,13 @@ function parseCars(): Car[] {
       id,
       make,
       name,
+      modelName:
+        (row['Model Name'] ?? '').trim() || deriveModelName(make, name, Number.parseInt(row.Year, 10) || 0),
       year: Number.parseInt(row.Year, 10) || 0,
       type: (row['Car Type'] ?? '').trim(),
       carClass: (row['Car Class'] ?? '').trim(),
       classRating: Number.parseInt(row['Class Rating'], 10) || 0,
+      rarity: (row.Rarity ?? '').trim(),
       country: (row.Country ?? '').trim(),
       collection,
       addOns: (row['Add-Ons'] ?? '').trim(),

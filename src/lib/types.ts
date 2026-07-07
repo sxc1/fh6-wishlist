@@ -2,10 +2,12 @@ export interface Car {
   id: string
   make: string
   name: string
+  modelName: string
   year: number
   type: string
   carClass: string
   classRating: number
+  rarity: string
   country: string
   collection: string[]
   addOns: string

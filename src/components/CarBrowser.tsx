@@ -102,8 +102,8 @@ export function CarBrowser() {
         ) : viewMode === 'tile' ? (
           // Column count keys off this scroll column's own width (container query),
           // not the viewport, since fixed side panels change how much room is here.
-          // Capped at 6 columns wide on the widest layouts.
-          <div className="grid grid-cols-2 gap-3 @[480px]:grid-cols-3 @[680px]:grid-cols-4 @[880px]:grid-cols-5 @[1080px]:grid-cols-6">
+          // Intentionally capped lower so tiles stay readable and less condensed.
+          <div className="grid grid-cols-1 gap-5 @[560px]:grid-cols-2 @[920px]:grid-cols-3 @[1320px]:grid-cols-4">
             {cars.map((car) => (
               <CarCard key={car.id} car={car} viewMode="tile" />
             ))}
