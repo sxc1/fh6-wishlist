@@ -99,6 +99,30 @@ export const COUNTRIES: string[] = [...new Set(CARS.map((c) => c.country).filter
   (a, b) => a.localeCompare(b),
 )
 
+const RARITY_ORDER = [
+  'Common',
+  'Rare',
+  'Epic',
+  'Legendary',
+  'Barn Find',
+  'Treasure Car',
+  'Forza Edition',
+] as const
+
+/** Distinct rarities in fixed UI order (unknown values appended alphabetically). */
+export const RARITIES: string[] = (() => {
+  const unique = [...new Set(CARS.map((c) => c.rarity).filter(Boolean))]
+  const rank = new Map<string, number>(RARITY_ORDER.map((rarity, i) => [rarity, i]))
+  return unique.sort((a, b) => {
+    const aRank = rank.get(a)
+    const bRank = rank.get(b)
+    if (aRank !== undefined && bRank !== undefined) return aRank - bRank
+    if (aRank !== undefined) return -1
+    if (bRank !== undefined) return 1
+    return a.localeCompare(b)
+  })
+})()
+
 /**
  * Manufacturer → set of countries its cars originate from. Currently every make maps to
  * exactly one country, but this is modeled as a set so a future dataset where a make

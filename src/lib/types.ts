@@ -25,6 +25,7 @@ export interface Filters {
   categories: string[]
   manufacturers: string[]
   countries: string[]
+  rarities: string[]
   yearRange: [number, number]
   costRange: [number, number]
 }

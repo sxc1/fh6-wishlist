@@ -6,6 +6,7 @@ import {
   COST_FLOOR,
   COST_STEP,
   COUNTRIES,
+  RARITIES,
   makesForCountries,
   YEAR_MAX,
   YEAR_MIN,
@@ -61,10 +62,12 @@ export function FilterPanel() {
   const toggleCategory = useStore((s) => s.toggleCategory)
   const toggleManufacturer = useStore((s) => s.toggleManufacturer)
   const toggleCountry = useStore((s) => s.toggleCountry)
+  const toggleRarity = useStore((s) => s.toggleRarity)
   const clearClasses = useStore((s) => s.clearClasses)
   const clearCategories = useStore((s) => s.clearCategories)
   const clearManufacturers = useStore((s) => s.clearManufacturers)
   const clearCountries = useStore((s) => s.clearCountries)
+  const clearRarities = useStore((s) => s.clearRarities)
   const setYearRange = useStore((s) => s.setYearRange)
   const setCostRange = useStore((s) => s.setCostRange)
   const resetFilters = useStore((s) => s.resetFilters)
@@ -89,6 +92,7 @@ export function FilterPanel() {
     filters.categories.length +
     filters.manufacturers.length +
     filters.countries.length +
+    filters.rarities.length +
     (yearFiltered ? 1 : 0) +
     (costFiltered ? 1 : 0)
 
@@ -250,6 +254,20 @@ export function FilterPanel() {
             formatValue={(v) => v.toLocaleString()}
             openEndedMax
             scale="log"
+          />
+        </Section>
+
+        <Section
+          title="Rarity"
+          count={filters.rarities.length}
+          onClear={filters.rarities.length ? clearRarities : undefined}
+        >
+          <MultiSelect
+            options={RARITIES}
+            selected={filters.rarities}
+            onToggle={toggleRarity}
+            placeholder="All rarities"
+            searchPlaceholder="Search rarities..."
           />
         </Section>
       </div>

@@ -8,6 +8,7 @@ export const DEFAULT_FILTERS: Filters = {
   categories: [],
   manufacturers: [],
   countries: [],
+  rarities: [],
   yearRange: [YEAR_MIN, YEAR_MAX],
   costRange: [COST_FLOOR, COST_CEIL],
 }
@@ -19,10 +20,12 @@ interface WishlistState {
   toggleCategory: (value: string) => void
   toggleManufacturer: (value: string) => void
   toggleCountry: (value: string) => void
+  toggleRarity: (value: string) => void
   clearClasses: () => void
   clearCategories: () => void
   clearManufacturers: () => void
   clearCountries: () => void
+  clearRarities: () => void
   setYearRange: (range: [number, number]) => void
   setCostRange: (range: [number, number]) => void
   resetFilters: () => void
@@ -88,10 +91,15 @@ export const useStore = create<WishlistState>()(
         set((s) => ({
           filters: { ...s.filters, countries: toggleValue(s.filters.countries, value) },
         })),
+      toggleRarity: (value) =>
+        set((s) => ({
+          filters: { ...s.filters, rarities: toggleValue(s.filters.rarities, value) },
+        })),
       clearClasses: () => set((s) => ({ filters: { ...s.filters, classes: [] } })),
       clearCategories: () => set((s) => ({ filters: { ...s.filters, categories: [] } })),
       clearManufacturers: () => set((s) => ({ filters: { ...s.filters, manufacturers: [] } })),
       clearCountries: () => set((s) => ({ filters: { ...s.filters, countries: [] } })),
+      clearRarities: () => set((s) => ({ filters: { ...s.filters, rarities: [] } })),
       setYearRange: (range) => set((s) => ({ filters: { ...s.filters, yearRange: range } })),
       setCostRange: (range) => set((s) => ({ filters: { ...s.filters, costRange: range } })),
       resetFilters: () => set({ filters: DEFAULT_FILTERS }),
@@ -147,7 +155,7 @@ export const useStore = create<WishlistState>()(
     }),
     {
       name: 'fh6-wishlist',
-      version: 6,
+      version: 7,
       // v1 -> v2 added `wishlistViewMode`. The default shallow merge fills the
       // new field from initial state, so persisted state passes through as-is
       // (existing users keep their wishlist, prices, and browser viewMode).
@@ -164,6 +172,8 @@ export const useStore = create<WishlistState>()(
       // v5 -> v6 removed the `'rating'` sort. Remap any persisted `sortField:
       // 'rating'` to `'class'` (near-identical order) or `compareCars` hits no
       // case and returns 0, leaving the list unsorted for those users.
+      // v6 -> v7 added the `rarities` filter. Backfill missing persisted values
+      // to an empty array so filter code can safely read `.length`.
       migrate: (persisted) => {
         const s = persisted as WishlistState & {
           obtained?: string[]
@@ -184,6 +194,7 @@ export const useStore = create<WishlistState>()(
           s.filters = {
             ...s.filters,
             countries: s.filters.countries ?? [],
+            rarities: s.filters.rarities ?? [],
             yearRange: [Math.max(YEAR_MIN, y0), Math.min(YEAR_MAX, y1)],
             costRange: [Math.max(COST_FLOOR, c0), Math.min(COST_CEIL, c1)],
           }
