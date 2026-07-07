@@ -1,4 +1,4 @@
-"""Merge Price/Speed/Handling/Acceleration/Launch/Braking/Offroad stats into
+"""Merge Rarity/Price/Speed/Handling/Acceleration/Launch/Braking/Offroad into
 the FH6 car CSV, sourced from the {{CarListStatsFH6}} templates on
 https://forza.fandom.com/wiki/Forza_Horizon_6/Cars (fetched via the MediaWiki
 API as raw wikitext JSON).
@@ -25,6 +25,7 @@ WIKI_JSON = sys.argv[1]
 CSV_PATH = sys.argv[2]
 
 STAT_FIELDS = ["Price", "Speed", "Handling", "Acceleration", "Launch", "Braking", "Offroad"]
+MERGED_FIELDS = ["Rarity"] + STAT_FIELDS
 
 
 def normalize(s):
@@ -40,6 +41,39 @@ def clean_number(s):
     if not s or s == "?":
         return ""
     return s.replace(",", "")
+
+
+def clean_rarity(s):
+    value = s.strip().lower()
+    if not value:
+        return "Unknown"
+    return {
+        "c": "Common",
+        "r": "Rare",
+        "e": "Epic",
+        "l": "Legendary",
+        "fe": "Forza Edition",
+        "barn": "Barn Find",
+        "treasure": "Treasure Car",
+        "unknown": "Unknown",
+    }.get(value, value.title())
+
+
+ALIASES = {
+    "2021 BMW M4 Competition Coupé Welcome Pack": "2021 BMW M4 Competition Coupé",
+    "2018 Ferrari FXX-K Evo Welcome Pack": "2018 Ferrari FXX-K Evo",
+    "2017 Ford #14 Rahal Letterman Lanigan Racing Fiesta": "2017 Ford #14 Rahal Letterman Lanigan Racing GRC Fiesta",
+    "2023 Ford F-150 Raptor R Welcome Pack": "2023 Ford F-150 Raptor R",
+    "2006 Formula Drift #43 Dodge Viper SRT-10 ACR": "2006 Formula Drift #43 Dodge Viper SRT10",
+    "2008 Honda Civic Type R (FD2)": "2008 Honda Civic Type R (2008)",
+    "2019 Jimco #240 Fastball Racing Class 6100 Spec Trophy Truck": "2019 Jimco #240 Fastball Racing Spec Trophy Truck",
+    "2020 Mercedes-AMG GT Black Series Welcome Pack": "2020 Mercedes-AMG GT Black Series",
+    "1990 Mercedes-Benz 190 E 2.5-16 Evolution II": "1990 Mercedes-Benz 190E 2.5-16 Evolution II",
+    "1990 Mercedes-Benz 190 E 2.5-16 Evolution II Forza Edition": "1990 Mercedes-Benz 190E 2.5-16 Evolution II Forza Edition",
+    "2004 Mitsubishi Lancer Evolution VIII MR Welcome Pack": "2004 Mitsubishi Lancer Evolution VIII MR",
+    "2022 Subaru BRZ Forza Edition": "2022 Subaru BRZ (2022) Forza Edition",
+    "2017 Volkswagen #34 Andretti Rally Cross Beetle": "2017 Volkswagen #34 Volkswagen Andretti Rally Cross Beetle",
+}
 
 
 with open(WIKI_JSON, "r", encoding="utf-8") as f:
@@ -73,6 +107,7 @@ for m in TEMPLATE_RE.finditer(wikitext):
         "display_name": display_name,
         "year": year,
         "pi": clean_number(pi),
+        "Rarity": clean_rarity(rarity),
         "Price": clean_number(value),
         "Speed": clean_number(sp),
         "Handling": clean_number(ha),
@@ -109,12 +144,23 @@ def dedup(entries):
 def find_candidates(year, car_name):
     # CSV "Car Name" already includes the leading year, matching the
     # "Year Name" form used to build by_year_name.
-    key = normalize(car_name)
-    candidates = by_year_name.get(key)
-    if candidates:
-        return dedup(candidates)
-    name_without_year = re.sub(r"^\s*\d{4}\s+", "", car_name)
-    return dedup(by_name_only.get(normalize(name_without_year), []))
+    names = [car_name]
+    if car_name in ALIASES:
+        names.append(ALIASES[car_name])
+    stripped = re.sub(r"\s+(Welcome Pack|Forza Edition)$", "", car_name)
+    if stripped != car_name:
+        names.append(stripped)
+
+    for name in names:
+        candidates = by_year_name.get(normalize(name))
+        if candidates:
+            return dedup(candidates)
+    for name in names:
+        name_without_year = re.sub(r"^\s*\d{4}\s+", "", name)
+        candidates = by_name_only.get(normalize(name_without_year))
+        if candidates:
+            return dedup(candidates)
+    return []
 
 
 with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
@@ -123,7 +169,10 @@ with open(CSV_PATH, "r", encoding="utf-8", newline="") as f:
     rows = list(reader)
 
 insert_at = fieldnames.index("Class Rating") + 1
-new_fieldnames = fieldnames[:insert_at] + STAT_FIELDS + fieldnames[insert_at:]
+new_fieldnames = fieldnames[:]
+for field in reversed(MERGED_FIELDS):
+    if field not in new_fieldnames:
+        new_fieldnames.insert(insert_at, field)
 
 ambiguous = []
 unmatched_rows = []
@@ -139,14 +188,18 @@ for row in rows:
         if len(pi_matches) == 1:
             entry = pi_matches[0]
         else:
-            unused = [c for c in candidates if not c["used"]]
-            if len(unused) == 1:
-                entry = unused[0]
+            price_matches = [c for c in candidates if c["Price"] == row["Price"]]
+            if len(price_matches) == 1:
+                entry = price_matches[0]
             else:
-                ambiguous.append((row["Car Name"], row["Class Rating"], [(c["display_name"], c["pi"]) for c in candidates]))
-                entry = pi_matches[0] if pi_matches else candidates[0]
+                unused = [c for c in candidates if not c["used"]]
+                if len(unused) == 1:
+                    entry = unused[0]
+                else:
+                    ambiguous.append((row["Car Name"], row["Class Rating"], [(c["display_name"], c["pi"]) for c in candidates]))
+                    entry = pi_matches[0] if pi_matches else candidates[0]
 
-    for field in STAT_FIELDS:
+    for field in MERGED_FIELDS:
         row[field] = entry[field] if entry else ""
 
     if entry:
@@ -162,7 +215,7 @@ for e in wiki_entries:
     row = {field: "" for field in new_fieldnames}
     row["Car Name"] = f"{e['year']} {e['display_name']}".strip()
     row["Year"] = e["year"]
-    for field in STAT_FIELDS:
+    for field in MERGED_FIELDS:
         row[field] = e[field]
     extra_rows.append(row)
 
