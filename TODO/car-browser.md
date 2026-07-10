@@ -1,6 +1,6 @@
 - [x] Remove the "Add" button in both list and tile views; clicking a list item/tile should add to wishlist. Show a partial-opacity `"ADDED"` overlay on added items.
 - [x] Make `CR`/credit/cost/value text display-only (not input boxes).
-- [ ] Select component-library components for search bar, sort control, and list/tile toggle.
+- [x] Select component-library components for search bar, sort control, and list/tile toggle.
 - [x] Fix incorrect car class pill colors by identifying correct colors and updating them. (Filter panel buttons for car class should match car class color when selected)
 - [x] Add country flags (to filter as well)
 - [x] Add car rarity (to filter as well)

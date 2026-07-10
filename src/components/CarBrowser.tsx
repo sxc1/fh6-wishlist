@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChevronsDown, ChevronsUp, LayoutGrid, Menu } from 'lucide-react'
+import { ChevronsDown, ChevronsUp, LayoutGrid, Menu, X } from 'lucide-react'
 import { CARS } from '../lib/cars'
 import { compareCars, isUnobtainable, matchesFilters, matchesSearch } from '../lib/filtering'
 import { missingCategoriesForWishlist } from '../lib/missingCategories'
@@ -41,13 +41,28 @@ export function CarBrowser() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-3">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search cars..."
-          className="min-w-40 flex-1 rounded-md border border-input bg-card px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-        />
+        <div className="relative min-w-40 flex-1">
+          <div className="min-h-[2.25rem] overflow-hidden rounded-md border border-input bg-card focus-within:ring-2 focus-within:ring-ring">
+            <input
+              type="text"
+              role="searchbox"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search cars..."
+              className="w-full bg-transparent py-1.5 pl-3 pr-10 text-sm outline-none"
+            />
+          </div>
+          {search ? (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              aria-label="Clear search"
+              className="absolute right-2 top-1/2 inline-flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-muted text-muted-foreground hover:bg-secondary hover:text-foreground"
+            >
+              <X size={12} strokeWidth={2.5} />
+            </button>
+          ) : null}
+        </div>
 
         <button
           type="button"
