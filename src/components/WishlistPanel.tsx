@@ -1,5 +1,15 @@
-import { useMemo, useRef } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Filter,
+  FilterX,
+  LayoutGrid,
+  Menu,
+  Trash2,
+} from 'lucide-react'
 import {
   DndContext,
   PointerSensor,
@@ -23,34 +33,35 @@ import { effectivePrice, useStore } from '../store'
 import { ConfirmDialog } from './ConfirmDialog'
 import { WishlistRow } from './WishlistRow'
 
+type ToggleIcon = 'filter' | 'eye'
+
 function Toggle({
   label,
   checked,
   onChange,
+  icon,
 }: {
   label: string
   checked: boolean
   onChange: () => void
+  icon: ToggleIcon
 }) {
+  const Icon = icon === 'filter' ? (checked ? Filter : FilterX) : checked ? EyeOff : Eye
+
   return (
-    <label className="flex cursor-pointer items-center justify-between gap-2 text-sm">
+    <button
+      type="button"
+      onClick={onChange}
+      aria-pressed={checked}
+      className={`inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-md border px-2.5 text-sm transition-colors ${
+        checked
+          ? 'border-primary/60 bg-primary/10 text-primary'
+          : 'border-input bg-card text-muted-foreground hover:bg-secondary hover:text-foreground'
+      }`}
+    >
+      <Icon size={14} strokeWidth={2.25} />
       <span>{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={onChange}
-        className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${
-          checked ? 'bg-primary' : 'bg-border'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-card transition-transform ${
-            checked ? 'left-0.5 translate-x-4' : 'left-0.5'
-          }`}
-        />
-      </button>
-    </label>
+    </button>
   )
 }
 
@@ -70,8 +81,19 @@ export function WishlistPanel() {
   const importWishlist = useStore((s) => s.importWishlist)
   const expanded = useStore((s) => s.wishlistPanelExpanded)
   const toggleExpanded = useStore((s) => s.toggleWishlistPanel)
+  const [showExpandedLabels, setShowExpandedLabels] = useState(expanded)
 
   const fileRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (!expanded) {
+      setShowExpandedLabels(false)
+      return
+    }
+    // Let the panel width animation create enough room before text appears.
+    const timeoutId = window.setTimeout(() => setShowExpandedLabels(true), 80)
+    return () => window.clearTimeout(timeoutId)
+  }, [expanded])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -195,57 +217,76 @@ export function WishlistPanel() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between gap-2 text-sm">
-          <div className="flex overflow-hidden rounded-md border border-input">
+      <div className="border-b border-border px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <div className="flex h-8 overflow-hidden rounded-md border border-input">
             <button
               type="button"
               onClick={() => setViewMode('tile')}
-              className={`px-3 py-1 text-sm ${
+              className={`inline-flex h-8 items-center justify-center gap-1.5 px-2.5 text-sm ${
                 viewMode === 'tile'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-card hover:bg-secondary'
               }`}
+              title="Tiles"
+              aria-label="Tiles"
             >
-              Tiles
+              <LayoutGrid size={14} strokeWidth={2.25} />
+              {showExpandedLabels ? <span>Tiles</span> : null}
             </button>
             <button
               type="button"
               onClick={() => setViewMode('list')}
-              className={`px-3 py-1 text-sm ${
+              className={`inline-flex h-8 items-center justify-center gap-1.5 px-2.5 text-sm ${
                 viewMode === 'list'
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-card hover:bg-secondary'
               }`}
+              title="List"
+              aria-label="List"
             >
-              List
+              <Menu size={14} strokeWidth={2.25} />
+              {showExpandedLabels ? <span>List</span> : null}
             </button>
           </div>
-          <ConfirmDialog
-            title="Clear wishlist?"
-            description={`This removes all ${wishlist.length} car${
-              wishlist.length === 1 ? '' : 's'
-            } from your wishlist and can't be undone.`}
-            confirmLabel="Clear wishlist"
-            destructive
-            onConfirm={clearWishlist}
-            trigger={
-              <button
-                type="button"
-                disabled={wishlist.length === 0}
-                className="rounded-md px-3 py-1.5 text-sm font-semibold text-destructive hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                Clear
-              </button>
-            }
+          <Toggle
+            label={showExpandedLabels ? 'Apply filters to wishlist' : 'Apply filters'}
+            checked={applyFilters}
+            onChange={toggleApplyFilters}
+            icon="filter"
           />
+          <Toggle
+            label={showExpandedLabels ? 'Hide acquired' : 'Acquired'}
+            checked={hideAcquired}
+            onChange={toggleHideAcquired}
+            icon="eye"
+          />
+          <div className="ml-auto">
+            <ConfirmDialog
+              title="Clear wishlist?"
+              description={`This removes all ${wishlist.length} car${
+                wishlist.length === 1 ? '' : 's'
+              } from your wishlist and can't be undone.`}
+              confirmLabel="Clear wishlist"
+              destructive
+              onConfirm={clearWishlist}
+              trigger={
+                <button
+                  type="button"
+                  disabled={wishlist.length === 0}
+                  title="Clear wishlist"
+                  aria-label="Clear wishlist"
+                  className={`inline-flex h-8 items-center justify-center gap-1.5 rounded-md text-sm font-semibold text-destructive hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-40 ${
+                    showExpandedLabels ? 'px-2.5' : 'w-8'
+                  }`}
+                >
+                  <Trash2 size={14} strokeWidth={2.25} />
+                  {showExpandedLabels ? <span>Clear</span> : null}
+                </button>
+              }
+            />
+          </div>
         </div>
-        <Toggle
-          label="Apply filters to wishlist"
-          checked={applyFilters}
-          onChange={toggleApplyFilters}
-        />
-        <Toggle label="Hide acquired" checked={hideAcquired} onChange={toggleHideAcquired} />
         <input
           ref={fileRef}
           type="file"

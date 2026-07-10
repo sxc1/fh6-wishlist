@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { ChevronsDown, ChevronsUp } from 'lucide-react'
+import { ChevronsDown, ChevronsUp, LayoutGrid, Menu } from 'lucide-react'
 import { CARS } from '../lib/cars'
 import { compareCars, isUnobtainable, matchesFilters, matchesSearch } from '../lib/filtering'
 import { missingCategoriesForWishlist } from '../lib/missingCategories'
@@ -19,6 +19,7 @@ export function CarBrowser() {
   const prices = useStore((s) => s.prices)
   const wishlist = useStore((s) => s.wishlist)
   const setCategories = useStore((s) => s.setCategories)
+  const wishlistPanelExpanded = useStore((s) => s.wishlistPanelExpanded)
 
   const missingCategories = useMemo(
     () => missingCategoriesForWishlist(wishlist),
@@ -77,20 +78,26 @@ export function CarBrowser() {
           <button
             type="button"
             onClick={() => setViewMode('tile')}
-            className={`px-3 py-1.5 text-sm ${
+            className={`inline-flex h-8 items-center justify-center gap-1.5 px-2.5 text-sm ${
               viewMode === 'tile' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-secondary'
             }`}
+            title="Tiles"
+            aria-label="Tiles"
           >
-            Tiles
+            <LayoutGrid size={14} strokeWidth={2.25} />
+            {!wishlistPanelExpanded ? <span>Tiles</span> : null}
           </button>
           <button
             type="button"
             onClick={() => setViewMode('list')}
-            className={`px-3 py-1.5 text-sm ${
+            className={`inline-flex h-8 items-center justify-center gap-1.5 px-2.5 text-sm ${
               viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-card hover:bg-secondary'
             }`}
+            title="List"
+            aria-label="List"
           >
-            List
+            <Menu size={14} strokeWidth={2.25} />
+            {!wishlistPanelExpanded ? <span>List</span> : null}
           </button>
         </div>
       </div>
